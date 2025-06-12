@@ -11,7 +11,6 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import lombok.Setter;
 
 import javax.net.ssl.SSLException;
 
@@ -42,6 +41,7 @@ public class HttpProxyBootstrap {
 
     public void start() {
         try {
+            if(isActive()) throw new RuntimeException("proxy already started");
             init();
             this.future = bindProxy(this.serverConfig.getIp(), this.serverConfig.getPort(), this.serverConfig.getExit());
             this.future.addListener(future -> {
@@ -51,15 +51,15 @@ public class HttpProxyBootstrap {
             });
             if (this.serverConfig.isBlock()) {
                 this.future.channel().closeFuture().sync();
-                close();
+                stop();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            close();
+            stop();
         }
     }
 
-    public void close() {
+    public void stop() {
         if (this.future != null && this.future.channel().isOpen()) {
             this.future.channel().close();
         }

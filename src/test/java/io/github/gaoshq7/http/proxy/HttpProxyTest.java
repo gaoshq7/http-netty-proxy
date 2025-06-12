@@ -85,7 +85,7 @@ public class HttpProxyTest {
         });
         ThreadUtil.safeSleep(5000);
         System.out.println("开启后服务的状态是：" + this.bootstrap.isActive());
-        this.bootstrap.close();
+        this.bootstrap.stop();
         ThreadUtil.safeSleep(3000);
         System.out.println("关闭后后服务的状态是：" + this.bootstrap.isActive());
     }
@@ -98,9 +98,42 @@ public class HttpProxyTest {
         ).start();
         ThreadUtil.safeSleep(5000);
         System.out.println("开启后服务的状态是：" + this.bootstrap.isActive());
-        this.bootstrap.close();
+        this.bootstrap.stop();
         ThreadUtil.safeSleep(3000);
         System.out.println("关闭后后服务的状态是：" + this.bootstrap.isActive());
+    }
+
+    @Test
+    public void start_stop_start() {
+        this.executor.submit(() -> {
+            this.bootstrap = new HttpProxyBootstrap();
+            System.out.println("http代理服务将要启动...");
+            this.bootstrap.config(
+                    new HttpProxyServerConfig(
+                            this.hostname, this.port, this.exit,
+                            HttpProxyTest.class.getClassLoader().getResourceAsStream("emr.org.pem"),
+                            HttpProxyTest.class.getClassLoader().getResourceAsStream("emr.org-key.pem"),
+                            true
+                    )
+            ).start();
+            System.out.println("http代理服务已被关闭...");
+        });
+        ThreadUtil.safeSleep(5000);
+        System.out.println("开启后服务的状态是：" + this.bootstrap.isActive());
+        this.bootstrap.stop();
+        ThreadUtil.safeSleep(3000);
+        System.out.println("关闭后后服务的状态是：" + this.bootstrap.isActive());
+        System.out.println("再次启动中...");
+        this.bootstrap.config(
+                new HttpProxyServerConfig(
+                        this.hostname, this.port, this.exit,
+                        HttpProxyTest.class.getClassLoader().getResourceAsStream("emr.org.pem"),
+                        HttpProxyTest.class.getClassLoader().getResourceAsStream("emr.org-key.pem"),
+                        true
+                )
+        );
+        this.bootstrap.start();
+        System.out.println("此处不应输出！");
     }
 
 }
